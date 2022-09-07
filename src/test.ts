@@ -1,4 +1,6 @@
-const puppeteer = require("puppeteer");
+const puppeteer = require("puppeteer-extra");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+
 require("dotenv").config({
   path: "./.env",
 });
@@ -29,22 +31,55 @@ const LogErr = (explanation = "Standard error") => {
   console.log("Encountered error " + explanation);
 };
 
-
-const ScreenShot = async(page, picname) => {
+const ScreenShot = async (page, picname) => {
   const filepath = "./src/pictures/" + picname + ".png";
-  await page.screenshot({ path:  filepath});
+  await page.screenshot({ path: filepath });
 };
 
+const SignIn = async (page) => {
+  await page.click("o-action-chip.o-action-chip--primary-dark");
 
+  await Delay(3000);
+
+  ScreenShot(page, "4");
+
+  await clickByText(page, "o-menu-item", `Kirjaudu sisään`);
+
+  await Delay(3000);
+
+  ScreenShot(page, "5");
+
+  await Delay(3000);
+
+  await page.click("#username");
+
+  await page.keyboard.type(process.env.EMAIL);
+
+  await Delay(1000);
+
+  await page.click("#password");
+
+  await page.keyboard.type(process.env.PASSWORD);
+
+  await Delay(1000);
+
+  await page.keyboard.press("Enter");
+
+  await Delay(6000);
+
+  ScreenShot(page, "6");
+};
 
 async function Main() {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
+  puppeteer.use(StealthPlugin());
+
   page.setUserAgent(
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
   );
 
-  await page.setDefaultNavigationTimeout(0); 
+  await page.setDefaultNavigationTimeout(0);
 
   // make sure kide app is online
 
@@ -78,42 +113,42 @@ async function Main() {
   ScreenShot(page, "3");
 
   // sign in
+  SignIn(page);
 
-  await page.click("o-action-chip.o-action-chip--primary-dark");
-
-  await Delay(3000);
-
-  ScreenShot(page, "4");
-
-  await clickByText(page, "o-menu-item", `Kirjaudu sisään`);
-
-  await Delay(3000);
-
-  ScreenShot(page, "5");
-
-  await page.$eval(
-    "#username",
-    (el, email) => (el.value = email),
-    process.env.EMAIL
-  );
-
-  await page.$eval(
-    "#password",
-    (el, psw) => (el.value = psw),
-    process.env.PASSWORD
-  );
-
-  await Delay(3000);
-
-  //await page.click(".o-button--flat");
-
-  await Delay(6000);
-
-  ScreenShot(page, "6");
+  await Delay(2000);
 
   let content = await page.content();
-  // console.log(content);
-  await browser.close();
+
+  let isOnSale = false;
+  while (!isOnSale) {
+    if (
+      (await page.$(
+        "body > main > ui-view > o-page > o-section:nth-child(2) > o-content > o-grid > div > o-grid > div:nth-child(2) > o-material > ng-include > o-list > o-item > o-accent"
+      )) !== null
+    ) {
+      console.log("is on sale");
+      isOnSale = true;
+    } else {
+      console.log("reloading page");
+      Delay(200);
+      await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
+    }
+  }
+  await page.click(
+    "body > main > ui-view > o-page > o-section:nth-child(2) > o-content > o-grid > div > o-grid > div:nth-child(2) > o-material > ng-include > o-list > o-item > o-accent"
+  );
+  Delay(100);
+  console.log("we are half way there");
+  await page.select("select", process.env.AMOUNT_OF_TICKETS);
+  Delay(100);
+  console.log("well make it i swear");
+  await page.click(
+    "body > o-dialog__container > o-dialog > form > o-dialog__footer > o-dialog__footer__content > button:nth-child(1)"
+  );
+  console.log("living on a prayer");
+  Delay(1000);
+  ScreenShot(page, "final");
+  console.log("finished");
 }
 
 Main();
