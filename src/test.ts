@@ -41,14 +41,10 @@ const SignIn = async (page) => {
 
   await Delay(500);
 
-  ScreenShot(page, "4");
-
   await clickByText(page, `Kirjaudu sisään`);
   console.log("pressed sign in");
 
   await Delay(500);
-
-  ScreenShot(page, "5");
 
   await Delay(100);
 
@@ -67,8 +63,6 @@ const SignIn = async (page) => {
   await page.keyboard.press("Enter");
 
   await Delay(4000);
-
-  ScreenShot(page, "6");
 };
 
 async function Main() {
@@ -88,10 +82,7 @@ async function Main() {
     LogErr("event page doesnt exit");
   }
 
-  await ScreenShot(page, "2");
-
   await Delay(500);
-  await ScreenShot(page, "3");
 
   // sign in
   await SignIn(page);
@@ -120,7 +111,7 @@ async function Main() {
           ":" +
           today.getSeconds()
       );
-      await Delay(200);
+      await Delay(50);
       await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
       timesReloaded++;
     }
