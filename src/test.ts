@@ -10,10 +10,10 @@ const escapeXpathString = (str) => {
   return `concat('${splitedQuotes}', '')`;
 };
 
-const clickByText = async (page, type, text) => {
+const clickByText = async (page, text) => {
   const escapedText = escapeXpathString(text);
   const linkHandlers = await page.$x(
-    `//${type}[contains(text(), ${escapedText})]`
+    `//o-menu-item[contains(text(), ${escapedText})]`
   );
 
   if (linkHandlers.length > 0) {
@@ -37,25 +37,26 @@ const ScreenShot = async (page, picname) => {
 };
 
 const SignIn = async (page) => {
-  await page.click("o-action-chip.o-action-chip--primary-dark");
+  await page.click(".o-action-chip--primary-dark");
 
-  await Delay(3000);
+  await Delay(1000);
 
   ScreenShot(page, "4");
 
-  await clickByText(page, "o-menu-item", `Kirjaudu sisään`);
+  await clickByText(page, `Kirjaudu sisään`);
+  console.log("pressed sign in");
 
-  await Delay(3000);
+  await Delay(1000);
 
   ScreenShot(page, "5");
 
-  await Delay(3000);
+  await Delay(2000);
 
   await page.click("#username");
 
   await page.keyboard.type(process.env.EMAIL);
 
-  await Delay(1000);
+  await Delay(500);
 
   await page.click("#password");
 
@@ -65,35 +66,19 @@ const SignIn = async (page) => {
 
   await page.keyboard.press("Enter");
 
-  await Delay(6000);
+  await Delay(4000);
 
   ScreenShot(page, "6");
 };
 
 async function Main() {
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({ headless: false });
   const page = await browser.newPage();
   puppeteer.use(StealthPlugin());
 
   page.setUserAgent(
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/71.0.3578.98 Safari/537.36"
   );
-
-  await page.setDefaultNavigationTimeout(0);
-
-  // make sure kide app is online
-
-  try {
-    await page.goto("https://kide.app");
-  } catch (error) {
-    LogErr("page offline");
-  }
-
-  await Delay(4000);
-
-  ScreenShot(page, "1");
-
-  // go to right event page
 
   try {
     await page.goto(process.env.URL_TO_SCRAPE);
@@ -113,11 +98,9 @@ async function Main() {
   ScreenShot(page, "3");
 
   // sign in
-  SignIn(page);
+  await SignIn(page);
 
-  await Delay(2000);
-
-  let content = await page.content();
+  await Delay(10000);
 
   let isOnSale = false;
   while (!isOnSale) {
@@ -141,10 +124,13 @@ async function Main() {
   console.log("we are half way there");
   await page.select("select", process.env.AMOUNT_OF_TICKETS);
   Delay(100);
+
   console.log("well make it i swear");
+
   await page.click(
     "body > o-dialog__container > o-dialog > form > o-dialog__footer > o-dialog__footer__content > button:nth-child(1)"
   );
+
   console.log("living on a prayer");
   Delay(1000);
   ScreenShot(page, "final");
