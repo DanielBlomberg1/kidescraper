@@ -1,4 +1,10 @@
 {
+  "name":"kidescraper",
+  "version": "0.1",
+  "main": "src/test.ts",
+  "bin": "bin.js",   
+  "author": "Daniel Blomberg",
+  "license": "MIT",
   "dependencies": {
     "dotenv": "^16.0.2",
     "puppeteer": "^17.1.0",

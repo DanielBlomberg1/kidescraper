@@ -39,18 +39,18 @@ const ScreenShot = async (page, picname) => {
 const SignIn = async (page) => {
   await page.click(".o-action-chip--primary-dark");
 
-  await Delay(1000);
+  await Delay(500);
 
   ScreenShot(page, "4");
 
   await clickByText(page, `Kirjaudu sisään`);
   console.log("pressed sign in");
 
-  await Delay(1000);
+  await Delay(500);
 
   ScreenShot(page, "5");
 
-  await Delay(2000);
+  await Delay(100);
 
   await page.click("#username");
 
@@ -62,7 +62,7 @@ const SignIn = async (page) => {
 
   await page.keyboard.type(process.env.PASSWORD);
 
-  await Delay(1000);
+  await Delay(500);
 
   await page.keyboard.press("Enter");
 
@@ -81,28 +81,25 @@ async function Main() {
   );
 
   try {
-    await page.goto(process.env.URL_TO_SCRAPE);
+    await page.goto(process.env.URL_TO_SCRAPE, {
+      waitUntil: ["networkidle0", "domcontentloaded"],
+    });
   } catch (error) {
     LogErr("event page doesnt exit");
   }
 
-  await Delay(4000);
+  await ScreenShot(page, "2");
 
-  ScreenShot(page, "2");
-
-  // close annoying banner
-
-  await page.click("button.o-card__footer__right.o-button.o-button--accent");
-
-  await Delay(3000);
-  ScreenShot(page, "3");
+  await Delay(500);
+  await ScreenShot(page, "3");
 
   // sign in
   await SignIn(page);
 
-  await Delay(10000);
+  await Delay(500);
 
   let isOnSale = false;
+  let timesReloaded = 0;
   while (!isOnSale) {
     if (
       (await page.$(
@@ -112,18 +109,37 @@ async function Main() {
       console.log("is on sale");
       isOnSale = true;
     } else {
-      console.log("reloading page");
-      Delay(200);
+      let today = new Date();
+      console.log(
+        timesReloaded,
+        ": reloading page ",
+        "the time is: " +
+          today.getHours() +
+          ":" +
+          today.getMinutes() +
+          ":" +
+          today.getSeconds()
+      );
+      await Delay(200);
       await page.reload({ waitUntil: ["networkidle0", "domcontentloaded"] });
+      timesReloaded++;
     }
   }
+  await Delay(300);
   await page.click(
     "body > main > ui-view > o-page > o-section:nth-child(2) > o-content > o-grid > div > o-grid > div:nth-child(2) > o-material > ng-include > o-list > o-item > o-accent"
   );
-  Delay(100);
+  await Delay(500);
   console.log("we are half way there");
-  await page.select("select", process.env.AMOUNT_OF_TICKETS);
-  Delay(100);
+
+  await page.click("select");
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press("ArrowDown");
+  }
+
+  await page.keyboard.press("Enter");
+
+  await Delay(500);
 
   console.log("well make it i swear");
 
@@ -132,9 +148,27 @@ async function Main() {
   );
 
   console.log("living on a prayer");
-  Delay(1000);
-  ScreenShot(page, "final");
+  await Delay(1000);
+  await ScreenShot(page, "final");
   console.log("finished");
 }
 
+async function Test() {
+  const url = "https://lichess.org/editor";
+  const browser = await puppeteer.launch({ headless: false });
+  const page = await browser.newPage();
+  puppeteer.use(StealthPlugin());
+  await page.goto(url);
+  await Delay(1000);
+  await page.click("#variants");
+
+  for (let i = 0; i < 3; i++) {
+    await page.keyboard.press("ArrowDown");
+  }
+
+  await page.keyboard.press("Enter");
+}
+
 Main();
+
+//Test();
