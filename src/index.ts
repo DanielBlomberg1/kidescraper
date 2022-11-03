@@ -121,7 +121,7 @@ async function Main() {
     "body > main > ui-view > o-page > o-section:nth-child(2) > o-content > o-grid > div > o-grid > div:nth-child(2) > o-material > ng-include > o-list > o-item > o-accent"
   );
   await Delay(500);
-  console.log("we are half way there");
+  console.log("tickets are on sale");
 
   await page.click("select");
   for (let i = 0; i < 3; i++) {
@@ -132,34 +132,16 @@ async function Main() {
 
   await Delay(500);
 
-  console.log("well make it i swear");
+  console.log("selected 4 tickets");
+  console.log("trying to reserve...");
 
   await page.click(
     "body > o-dialog__container > o-dialog > form > o-dialog__footer > o-dialog__footer__content > button:nth-child(1)"
   );
 
-  console.log("living on a prayer");
   await Delay(1000);
   await ScreenShot(page, "final");
-  console.log("finished");
-}
-
-async function Test() {
-  const url = "https://lichess.org/editor";
-  const browser = await puppeteer.launch({ headless: false });
-  const page = await browser.newPage();
-  puppeteer.use(StealthPlugin());
-  await page.goto(url);
-  await Delay(1000);
-  await page.click("#variants");
-
-  for (let i = 0; i < 3; i++) {
-    await page.keyboard.press("ArrowDown");
-  }
-
-  await page.keyboard.press("Enter");
+  console.log("successfully reserved 4 tickets for the event");
 }
 
 Main();
-
-//Test();
